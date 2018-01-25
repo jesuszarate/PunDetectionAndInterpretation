@@ -1,5 +1,6 @@
 import os
 import sys
+from termcolor import colored
 
 
 def computeTrueCase(filename, output_file='output_files'):
@@ -24,14 +25,14 @@ def computeTrueCase(filename, output_file='output_files'):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print('Please provide filename and output directory')
-        print('i.e. python toPDF.py HW0.tex')
+        print colored('Please provide filename and output directory', 'red')
+        print colored('i.e. python toPDF.py HW0.tex', 'red')
         exit()
     if len(sys.argv) > 2:
-        print('Too many arguments provided')
+        print colored('Too many arguments provided', 'red')
         exit()
     if not os.path.exists(sys.argv[1]):
-        print('Tex file you provided does not exist.')
+        print colored('Tex file you provided does not exist.', 'red')
         exit()
 
     computeTrueCase(sys.argv[1])

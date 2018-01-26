@@ -5,171 +5,145 @@
 \usepackage{graphicx}
 \usepackage{listings}
 
+\usepackage{color}
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+
+\lstset{
+language=XML,
+morekeywords={encoding,
+xs:schema,xs:element,xs:complexType,xs:sequence,xs:attribute}
+}
 \usepackage{enumitem}
+
+\lstset{
+language=XML,
+morekeywords={encoding,
+xs:schema,xs:element,xs:complexType,xs:sequence,xs:attribute}
+}
+
 \setlist[enumerate,1]{start=0} % only outer nesting level
 
-\title{Local Search Methods for k-Means with Outliers}
-\author{Jesus Zarate}
-\date{January 15, 2018}
+\title{Pun Identification and Extraction}
+\author{Team: PUN}
+\author{Johnny Le, Jesus Zarate}
+
+\date{\today}
 
 \begin{document}
 
 \maketitle
 
-\section{Introduction}
 
-Clustering using k-means is a widely studied data mining problem, and it is well known that
-finding an optimal solution is NP-hard. The k-means algorithms is known to be as one of the top
-ten algorithms used in data mining, other than having the guarantee of being a local
-minimum, it is simply a heuristic and has no guarantees on the quality of the solution.
-Although k-means is well studied, real world algorithms don't perform very well. In
-practice k-means peforms poorly due to k-means assuming that all of the points can be
-naturally partitioned into k distinct clusters. Also, real world data tends to contain
-noise and k-means is extremely sensitive to it, and it can drastically change the
-quality of the clusters.\\
+\section{Task}
 
-In our project we took on the task of dealing with noisy data, or a way to deal with
-outliers in the data. The way the paper that we researched dealt with noisy data was
-to still perform the normal clustering algorithm, however, the algorithm also discards
-a small set of data points from the input data. The points removed from the input
-data will be referred to as outliers, and will not be included in part of the clustering
-solution. This will allow the clustering algorithm to focus on partitioning the rest
-of the data, which will be virtually noise-free.
+In our project we aim to detect and extract puns from a set of punning jokes. Puns
+belong to a class of language constructs, where the speaker or writer intends ambiguity
+on a certain word, allowing the word to carry two or more separate meanings
+simultaneously.
+Typically word sense disambiguation \big(WSD\big) assumes that for each
+ word there exists a single unambiguous communicative intention.\\
+
+\noindent There are two different types of puns, {\textbf{homographic} } puns and {\textbf{heterographic} } puns.
+Homographic or perfect puns are puns where the two meanings share the same pronunciation.
+On the other hand heterophonic or imperfect puns are those that rely on similar sounding
+signs, where the signs are considered as written rather than spoken sequences
 
 
 
 
-\section{Algorithm}
-Although the paper gives a very discriptive algorithm, it is not very easy to read, and
-we would like to give alternate pseudocode and try to make it more readable and provide
-more comments.\\
+\section{Data}\label{sec:data}
 
-The algorithm behave just like good old vanilla k-means where it tries to minimize
-the sum of squared distances between every point and its nearest center, in euclidean
-space. Except that as the algorithm tries to find the best centers by swaping, this
-algorithm also removes the points farthest away from swapped centers, and calls them
-outliers. If the algorithm improves by a significant amount then these outliers
-will be discarded from the input data, and the algorthim will continue with this
-process until swaping centes and removing additional outliers does not improve
-the cost. \\
+%The data we will be using for this system will be
+We will be using the
+\href{http://alt.qcri.org/semeval2017/task7/}{SemEval-2017 Task 7}
+data.
+The data is in XML format with each pun joke listed sequentially.\\
 
-
-{\break}
-
-{\bf The first part of the algorithm is the local search for k-means without outliers}
+Example of a pun joke:\\
 
 \begin{lstlisting}
-
-def LS(Input, C, k):
-    alpha = infinity
-
-    while alpha * (1 - epsilon/k) > Cost(C, Input):
-        alpha = cost(C, Input)
-        tempC = C # A temporary improved set of centers
-
-
-        for u in range(Input):
-            for v in range(C):
-
-                swapC = swap(u, v, C) # Swap the values of u and v
-                swapCost = cost(swapC, Input) # Calculate the cost
-                                              # of the swapped center
-
-                # If this is the most improved swap found so far
-                if swapCost < cost(tempC, Input):
-                    tempC = swapC
-
-        # Update solution to the best swap found so far
-        C = tempC
-    return C # as the k centers
+    <text id="hom_4">
+    <word id="hom_4_1">A</word>
+    <word id="hom_4_2">ditch</word>
+    <word id="hom_4_3">digger</word>
+    <word id="hom_4_4">was</word>
+    <word id="hom_4_5">entrenched</word>
+    <word id="hom_4_6">in</word>
+    <word id="hom_4_7">his</word>
+    <word id="hom_4_8">career</word>
+    <word id="hom_4_9">.</word>
+    </text>
 \end{lstlisting}
 
-{\bf The second part of the algorithm is the local search for k-means with outliers}
+\noindent There is also a text file that illustrates the answer format for the scoring program that came with the data.
+The format of the file consists of two fields separated by horizontal whitespace
+(a single tab or space character).
+The first field is the ID of a text from the XML field.
+The second field is the ID of the one word in that text which is a pun.\\
 
-This algorithm is divided into 3 parts.
+Example answer for the pun joke above from the text file:\\
 
-\begin{enumerate}
-
-\item Perform local search with no outliers
-
-\item Computing the cost after discarding z amount of additional outliers
-
-\item  Finally for each center and non-center, perform a swap and then discard additional outliers
-
-\end{enumerate}
+hom\_4   hom\_4\_5
 
 
-\begin{lstlisting}
+\section{Evaluation}\label{sec:evaluation}
 
-def LS-Outlier(Input, C, k):
-    alpha = infinity
-    C = kCenters(Input) # An arbitrary set of k points from Input
-    Z = outliers(C) # Compute outliers by getting points
-                    # farthest away from the centers
+Since the data came from \href{http://alt.qcri.org/semeval2017/task7/}{SemEval-2017 Task 7}
+which contains a scoring program, and it uses the F-measure statistic.\\
 
-    while alpha * (1 - epsilon/k) > Cost(C, Input):
-        alpha = cost(C, Z)
-
-        # Step 0
-        inputNoOutliers = removeOutliers(Input, Z)
-        C = LS(inputNoOutliers, C, k)
-
-        tempC = C # A temporary improved set of centers
-        tempZ = Z # A temporary improved set of outliers
-
-        # Step 1
-        additionalOutliers = Z + outliers(C, Z)
-        costAdditionaOutliers = cost(C, additionalOutliers)
-
-        if cost(C, Z)(1 - epsilon/k) > costAdditionaOutliers
-            tempZ = additionalOutliers
-
-\end{lstlisting}
-
-\break
-
-\section{Algorithm Modifications}
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod quis odio sed malesuada. Praesent a massa ut magna
-fringilla imperdiet ut ac dolor. Nulla tempus arcu a elit mollis, id convallis dui lacinia. Nulla interdum lorem at orci
- semper, at faucibus mi vehicula. Morbi pulvinar tempus sem, nec accumsan lectus varius et. Proin eu cursus est. Nullam
- eu placerat eros, vel viverra neque.
+\noindent We will be implementing our evaluation program using python.
+We will compute the following:\\
 
 
-\section{Experiments}
+\begin{itemize}
 
-Quisque aliquam accumsan orci nec auctor. Suspendisse elit justo, iaculis ut orci porttitor, egestas pharetra urna.
-Fusce hendrerit nulla id ligula faucibus hendrerit. Aliquam libero purus, consectetur vel risus vitae, faucibus rhoncus
-odio. Sed fringilla elit eu dolor pharetra, non viverra nisi accumsan. Integer gravida metus quam, nec laoreet nunc
-tristique nec. Nullam in ex vel dolor pharetra scelerisque. Etiam vestibulum consequat tortor, id aliquet nunc ultricies
- a. Donec consequat consectetur sagittis. Nunc neque mi, sagittis eget tempor ut, posuere nec felis. Nam mollis lectus
- libero, vel laoreet neque dignissim a. Etiam laoreet velit nec nunc egestas, rutrum ullamcorper diam pellentesque. Nam
- placerat at nisi quis fermentum.
-\subsection{Synthetic Data}
+\item [] {\textbf{Recall} }
 
-Nullam libero lectus, rutrum eget velit eu, posuere rutrum leo. Suspendisse cursus orci nisl, eget vestibulum risus
-mattis quis. Cras dapibus, tellus quis accumsan accumsan, ligula ligula eleifend diam, ut lobortis neque mi cursus nisl.
- Praesent lobortis ipsum tortor, ut aliquam tellus blandit nec. Nullam non luctus mauris. Quisque consectetur ultricies
- nunc, posuere commodo nisi condimentum dictum. Suspendisse potenti. Curabitur sed imperdiet arcu. Nulla aliquet nisi
- risus. Sed et aliquam elit, vel aliquam enim. Curabitur posuere porttitor tellus eget ornare. Morbi iaculis ultricies
- nisl, eget ullamcorper nulla facilisis eget. Pellentesque habitant morbi tristique senectus et netus et malesuada fames
-  ac turpis egestas. In auctor urna in congue egestas. Class aptent taciti sociosqu ad litora torquent per conubia
-  nostra, per inceptos himenaeos. Sed posuere lectus in orci lacinia viverra.
+
+The number of correct puns $($location of the pun word$)$ extracted divided by the number
+of puns in the gold file. \\
+
+\item [] {\textbf{Precision} }\\
+
+The precision will be computed by taking the number of {\textbf{correct} } puns extracted divided
+by the total number of puns extracted by our system.
+
+\item [] {\textbf{F-measure} }\\
+
+The F-measure is how we're going to be measuring the performance of our extraction system.
+
+\[F_1 = 2 * \frac{Precision * Recall} {Precision + Recall} \]
+
+\end{itemize}
+
+\noindent The data comes with two sets of data a training data, (which we will do the training with)
+and test set. \\
+
+\noindent The training data will be split into two sets, one for training and the rest for test and then tune.
+Finally the test data will be used to evaluate the system.
 
 
 
-\subsection{Real Data}
-Nam sagittis metus sit amet accumsan efficitur. Donec molestie viverra ipsum, vitae hendrerit nisi tempor sit amet.
-Praesent a pulvinar lorem. Integer consequat vulputate turpis, a luctus velit posuere vel. Curabitur in placerat quam.
-Quisque bibendum leo at massa sollicitudin dignissim. Nullam in semper risus.
+\section{Demo Interface}\label{sec:demoInterface}
 
-\section{Results}
+The demo interface will consist of running a python script on the command-line.\\
 
-Cras vitae tempor justo, in hendrerit erat. Quisque imperdiet dignissim elit, vitae efficitur velit tempus eget. Duis
-est ex, dapibus ac diam in, eleifend ornare urna. Phasellus vitae sem non felis ultrices sollicitudin. Sed lorem nisl,
-pharetra vel efficitur non, sollicitudin ut nisi. Sed eu metus efficitur, iaculis ligula vitae, tincidunt dui. Maecenas
-auctor tortor sed tempor volutpat. Proin scelerisque, erat eget dapibus placerat, lorem felis fringilla arcu, id
-eleifend felis ex vitae lacus. In lectus risus, finibus et lacus ut, mattis sagittis dui.
+\begin{center}
+python extract.py input-file.txt\\
+\end{center}
+
+
+\noindent Executing the command above will yield two files.
+The first file identified pun word in
+each text, and the second file will be the evaluation results discussed in the previous
+section.\\
+
+\begin{center}
+subtask1-heterographic-test.results\\
+subtask1-heterographic-test.score
+\end{center}
 
 
 \end{document}

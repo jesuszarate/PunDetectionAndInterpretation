@@ -9,7 +9,6 @@
     sudo python -m nltk.downloader
     ```
 
-    You can also 
 
 ### Python Version used:
 ************************
